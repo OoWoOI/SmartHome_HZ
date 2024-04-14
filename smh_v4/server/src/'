@@ -1,0 +1,29 @@
+/*************************************************************************
+	> File Name: handle.c
+	> Author: 
+	> Mail: 
+	> Created Time: Sun 14 Apr 2024 04:05:38 PM CST
+ ************************************************************************/
+
+ #include "../include/server.h"
+
+Server *sv;
+int server_listen;
+
+//信号处理：退出
+
+
+//主反应对
+
+
+//从反应堆
+
+
+ int handle_event() {
+    //获取监听套接字
+    if ((server_listen = socket_create(sv->port)) < 0) {
+        return -1;
+    }
+    
+     return 0;
+ }

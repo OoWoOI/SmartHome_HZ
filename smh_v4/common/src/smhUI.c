@@ -10,6 +10,7 @@
 #include <locale.h>
 #include <string.h>
 #include <math.h>
+#include <sys/ioctl.h>
 #include <time.h>
 #include "../include/smhDatatype.h"
 #include "../include/smhUI.h"
@@ -17,6 +18,8 @@
 
 extern WINDOW *message_win, *message_sub,  *info_win, *input_win, *info_sub;
 extern int message_num;
+
+int MSG_WIDTH, MSG_HEIGHT, INFO_WIDTH, INPUT_HEIGHT;
 
 WINDOW *create_newwin(int width, int heigth, int startx, int starty) {
     WINDOW *win;
@@ -65,6 +68,14 @@ void w_gotoxy_puts(WINDOW *win, int x, int y, char *s) {
 void show_info();
 
 void init_ui() {
+    //初始化窗口
+    struct winsize size;
+    ioctl(0, TIOCGWINSZ, &size);
+    MSG_WIDTH = size.ws_col - 30;
+    MSG_HEIGHT = size.ws_row - size.ws_row % 10;
+    INFO_WIDTH = size.ws_row - size.ws_row % 10;
+    INPUT_HEIGHT = size.ws_col - size.ws_col / 10 * 10;
+    //
     initscr();
     clear();
     if (!has_colors() || start_color() == ERR) {
