@@ -1,12 +1,10 @@
 /*************************************************************************
-	> File Name: main.c
+	> File Name: smhRecv.h
 	> Author: 
 	> Mail: 
-	> Created Time: Sun 14 Apr 2024 02:14:38 PM CST
+	> Created Time: Mon 15 Apr 2024 02:57:33 PM CST
  ************************************************************************/
 
-#include "./include/server.h"
-
-int main() {
-    return run_server();
-}
+#ifndef _SMHRECV_H
+#define _SMHRECV_H
+#endif

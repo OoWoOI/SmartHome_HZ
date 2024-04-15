@@ -1,12 +1,13 @@
 /*************************************************************************
-	> File Name: main.c
+	> File Name: sendMsg.h
 	> Author: 
 	> Mail: 
-	> Created Time: Sun 14 Apr 2024 02:14:38 PM CST
+	> Created Time: Mon 15 Apr 2024 03:01:58 PM CST
  ************************************************************************/
 
-#include "./include/server.h"
+#ifndef _SENDMSG_H
+#define _SENDMSG_H
 
-int main() {
-    return run_server();
-}
+void sendMsg();
+
+#endif

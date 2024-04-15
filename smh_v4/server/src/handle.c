@@ -26,7 +26,7 @@ static int epollfd;//epoll实例文件描述符
 
 //服务器连接处理，将建立连接的套接字，
 //注册到epoll实例中去，根据事件驱动模式，在从反应堆中完成功能逻辑
-int handle_accept(int sockfd) {
+static int handle_accept(int sockfd) {
     struct sockaddr_in cli_addr;
     socklen_t cli_len = sizeof(cli_addr);
 
@@ -49,28 +49,62 @@ int handle_accept(int sockfd) {
     return 0;
 }
 
+static void remove_from_epoll(int fd) {
+    struct epoll_event event;
+    event.data.fd = fd;
+    if (epoll_ctl(epollfd, EPOLL_CTL_DEL, fd, &event) < 0) {
+        log_event(LOG_LEVEL_ERROR, "epoll_ctl del", LOGPATH);
+        return ;
+    }
+    log_event(LOG_LEVEL_INFO, "epoll_ctl del success", LOGPATH);
+    return ;
+}
+
 //handle_message控制信息，接收来自客户端的信息，并定时发送心跳信息
 //根据接受的信息，完成对相应功能需求的响应。
-int handle_message(int fd) {
-    //获取客户端传来的数据
+static int handle_message(int fd) {
+    //分析数据的类型
     struct SmhMsg msg;
-    memset(&msg, 0, sizeof(msg));//清空msg中的内存。
-    size_t recvSize = recv(fd, &msg, sizeof(msg), 0);
-
-    if (recvSize < 0) {
-        log_event(LOG_LEVEL_ERROR, "数据读取失败~~~", LOGPATH);
-        close(fd);
+    bzero(&msg, sizeof(msg));
+    ssize_t rsize = recv(fd, &msg, sizeof(msg), 0);
+    if (rsize < 0) {
+        log_event(LOG_LEVEL_ERROR, "接收数据失败~~~", LOGPATH);
+        return -1;
+    }
+    if (rsize == 0) { 
+        log_event(LOG_LEVEL_INFO, "客户端断开连接~~", LOGPATH);
         return -1;
     }
 
-    if (recvSize == 0) {
-        log_event(LOG_LEVEL_INFO, "one client disconnected\n", LOGPATH);
-        close(fd);
-        return -1;
+    switch (msg.type) {
+        case SMH_HEART: {
+            //心跳信息
+            heart_info(msg);
+        } break;
+        case SMH_ACK: {
+            //请求登录
+            login_info(msg);
+        } break;
+        case SMH_MSG: {
+            //聊天信息
+            chat_info(msg, fd);
+        } break;
+        case SMH_WALL: {
+            //公告
+            broadcast_info(msg);
+        } break;
+        case SMH_CTL: {
+            //设备控制信息
+            dev_info(msg);
+        } break;
+        case SMH_FIN: {
+            //退出登录状态
+            logout_info(msg);
+        } break;
+        default : {
+            log_event(LOG_LEVEL_WARNING, "未知类型数据", LOGPATH);
+        } break;
     }
-    //数据获取成功，解析数据
-
-
     return 0;
 }
 
@@ -120,12 +154,16 @@ int handle_event() {
             if (fd == server_listen) {
                 //异常处理
                 if (handlers[0](server_listen) < 0) {
+                    close(fd);
+                    close(epollfd);
                     return -1;
                 }
             } else {
                 //异常处理
                 if (handlers[1](fd) < 0) {
-                    return -1;
+                    remove_from_epoll(fd);
+                    close(fd);
+                    log_event(LOG_LEVEL_INFO, "从epoll监控实例中删除一个fd", LOGPATH);
                 }
             }
         }

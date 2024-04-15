@@ -1,12 +1,13 @@
 /*************************************************************************
-	> File Name: main.c
+	> File Name: recvMsg.h
 	> Author: 
 	> Mail: 
-	> Created Time: Sun 14 Apr 2024 02:14:38 PM CST
+	> Created Time: Mon 15 Apr 2024 03:02:06 PM CST
  ************************************************************************/
 
-#include "./include/server.h"
+#ifndef _RECVMSG_H
+#define _RECVMSG_H
 
-int main() {
-    return run_server();
-}
+void recvMsg();
+
+#endif
